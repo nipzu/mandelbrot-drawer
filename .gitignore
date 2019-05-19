@@ -5,3 +5,5 @@ bin/
 pkg/
 wasm-pack.log
 .cargo-ok
+www/node_modules
+www/dist
