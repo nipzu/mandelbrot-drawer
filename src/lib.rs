@@ -105,11 +105,11 @@ impl MandelbrotRenderer {
         self.state.screen_width = buffer.width as u32;
         self.state.screen_height = buffer.height as u32;
         let escape_times = self.escape_time_renderer.calculate_escape_times(&self.state);
-        //self.calculate_colors(buffer, escape_times);
+        self.calculate_colors(buffer, escape_times);
     }
 
     fn calculate_colors(&self, buffer: &mut CanvasBuffer, escape_times: Vec<u32>) {
-        let mut total = 0.0;
+        /*let mut total = 0.0;
         let mut histogram = vec![0_u32; self.state.max_iterations as usize + 1];
 
         for escape_time in escape_times.iter() {
@@ -117,29 +117,29 @@ impl MandelbrotRenderer {
                 total += 1.0;
             }
             histogram[*escape_time as usize] += 1;
-        }
+        }*/
 
         for y in 0..buffer.height {
             for x in 0..buffer.width {
-                let mut hue = 0.0;
                 let escape_time = escape_times[y * buffer.width + x];
+                /*let mut hue = 0.0;
                 for i in 0..=escape_time {
                     hue += histogram[i as usize] as f64 / total;
-                }
+                }*/
 
 
                 if escape_time < self.state.max_iterations {
-                    let color = Srgb::from(Hsl::new(hue * 360.0, 1.0, 0.5));
+                    //let color = Srgb::from(Hsl::new(hue * 360.0, 1.0, 0.5));
 
-                    buffer.data[(y * buffer.width + x) * 4 + 0] = (color.red * 255.0) as u8;
-                    buffer.data[(y * buffer.width + x) * 4 + 1] = (color.green * 255.0) as u8;
-                    buffer.data[(y * buffer.width + x) * 4 + 2] = (color.blue * 255.0) as u8;
-                    buffer.data[(y * buffer.width + x) * 4 + 3] = 255;
-
-                    //buffer.data[(y * buffer.width + x) * 4 + 0] = 0;
-                    //buffer.data[(y * buffer.width + x) * 4 + 1] = (hue * 255.0) as u8;
-                    //buffer.data[(y * buffer.width + x) * 4 + 2] = 0;
+                    //buffer.data[(y * buffer.width + x) * 4 + 0] = (color.red * 255.0) as u8;
+                    //buffer.data[(y * buffer.width + x) * 4 + 1] = (color.green * 255.0) as u8;
+                    //buffer.data[(y * buffer.width + x) * 4 + 2] = (color.blue * 255.0) as u8;
                     //buffer.data[(y * buffer.width + x) * 4 + 3] = 255;
+
+                    buffer.data[(y * buffer.width + x) * 4 + 0] = 0;
+                    buffer.data[(y * buffer.width + x) * 4 + 1] = 255 as u8;
+                    buffer.data[(y * buffer.width + x) * 4 + 2] = 0;
+                    buffer.data[(y * buffer.width + x) * 4 + 3] = 255;
                 } else {
                     buffer.data[(y * buffer.width + x) * 4 + 0] = 0;
                     buffer.data[(y * buffer.width + x) * 4 + 1] = 0;

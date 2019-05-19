@@ -1,17 +1,18 @@
-import { CanvasBuffer, MandelbrotRenderer } from "mandelbrot/mandelbrot";
+import { CanvasBuffer, MandelbrotRenderer, initialize } from "mandelbrot/mandelbrot";
 import { memory } from "mandelbrot/mandelbrot_bg";
 import "../css/style.css";
 
 const canvas = document.getElementById("mandelbrot-canvas");
-//const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 
 const zoom_factor = 1.1;
 
 var zoom = 1.0;
 var view_x = -0.3;
 var view_y = 0.0;
-var max_iterations = 3000;
+var max_iterations = 30000;
 
+initialize();
 var canvas_buffer = CanvasBuffer.new();
 var mandelbrot_rendered = MandelbrotRenderer.new(zoom, view_x, view_y, max_iterations);
 
@@ -125,7 +126,7 @@ const draw_image = () => {
     canvas.style.width = "100%";
     canvas.style.height = "100%";
 
-    //draw_canvas();
+    draw_canvas();
 }
 
 const draw_canvas = () => {

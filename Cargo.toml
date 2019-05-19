@@ -37,11 +37,14 @@ features = [
     "Element",
     "HtmlCanvasElement",
     "HtmlElement",
-    "WebGlRenderingContext",
+    "WebGl2RenderingContext",
     "WebGlBuffer",
     "WebGlProgram",
     "WebGlShader",
-    "WebGlUniformLocation"
+    "WebGlUniformLocation",
+    "WebGlTexture",
+    "WebGlFramebuffer",
+    "OffscreenCanvas"
 ]
 
 [dev-dependencies]
