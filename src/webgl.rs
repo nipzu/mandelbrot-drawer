@@ -1,7 +1,7 @@
 use js_sys::WebAssembly;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlCanvasElement, WebGlRenderingContext, WebGlProgram, WebGlShader};
-use crate::{CalculateEscapeTimes, RenderingState, CanvasBuffer};
+use crate::{CalculateEscapeTimes, RenderingState};
 
 pub struct WebGLRenderer {
     canvas: HtmlCanvasElement,
@@ -33,7 +33,7 @@ impl WebGLRenderer {
         }
         ");
 
-        let fragment_shader = compile_shader(&context, WebGlRenderingContext::FRAGMENT_SHADER, 
+        let fragment_shader = compile_shader(&context, WebGlRenderingContext::FRAGMENT_SHADER,
         "
         precision highp int;
         precision highp float;
@@ -90,12 +90,12 @@ impl WebGLRenderer {
 }
 
 impl CalculateEscapeTimes for WebGLRenderer {
-    fn calculate_escape_times(&self, state: &RenderingState, canvas_buffer: &CanvasBuffer) -> Vec<u32> {
+    fn calculate_escape_times(&self, state: &RenderingState) -> Vec<u32> {
         self.context.use_program(Some(&self.program));
 
-        self.canvas.set_width(canvas_buffer.width as u32);
-        self.canvas.set_height(canvas_buffer.height as u32);
-        self.context.viewport(0, 0, canvas_buffer.width as i32, canvas_buffer.height as i32);
+        self.canvas.set_width(state.screen_width);
+        self.canvas.set_height(state.screen_height);
+        self.context.viewport(0, 0, state.screen_width as i32, state.screen_height as i32);
 
         let view_loc = self.context.get_uniform_location(&self.program, "view").unwrap();
         let zoom_loc = self.context.get_uniform_location(&self.program, "zoom").unwrap();
@@ -145,8 +145,6 @@ impl CalculateEscapeTimes for WebGLRenderer {
         vec![]
     }
 }
-
-
 
 pub fn init() {
     //let mut renderer = WebGLRenderer::new();
