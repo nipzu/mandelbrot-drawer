@@ -11,10 +11,6 @@ pub struct WebGLRenderer {
 
 impl WebGLRenderer {
     pub fn new() -> WebGLRenderer {
-        //let document = web_sys::window().expect("1").document().expect("2");
-        //let canvas = document.get_element_by_id("mandelbrot-canvas").expect("3");
-        //let canvas = canvas.dyn_into::<web_sys::HtmlCanvasElement>().expect("4");
-
         let canvas = OffscreenCanvas::new(0, 0).expect("Could not load offscreencanvas");
 
         let context = canvas.get_context("webgl2").expect("5").unwrap().dyn_into::<WebGl2RenderingContext>().expect("7");
@@ -138,9 +134,6 @@ impl CalculateEscapeTimes for WebGLRenderer {
 
         self.context.vertex_attrib_pointer_with_i32(0, 2, WebGl2RenderingContext::FLOAT, false, 0, 0);
         self.context.enable_vertex_attrib_array(0);
-
-        //self.context.clear_color(0.0, 0.0, 0.0, 1.0);
-        //self.context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
 
         let target_texture = self.context.create_texture().unwrap();
 

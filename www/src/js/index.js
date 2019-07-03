@@ -1,20 +1,19 @@
-import { CanvasBuffer, MandelbrotRenderer, initialize } from "mandelbrot/mandelbrot";
-import { memory } from "mandelbrot/mandelbrot_bg";
+import Worker from "worker-loader!./renderer.worker";
 import "../css/style.css";
 
 const canvas = document.getElementById("mandelbrot-canvas");
 const ctx = canvas.getContext("2d");
 
-const zoom_factor = 1.1;
+const zoom_factor = 1.125;
 
-var zoom = 1.0;
-var view_x = -0.3;
-var view_y = 0.0;
-var max_iterations = 30000;
+//var zoom = 1.0;
+//var view_x = -0.3;
+//var view_y = 0.0;
+//var max_iterations = 50;
 
-initialize();
-var canvas_buffer = CanvasBuffer.new();
-var mandelbrot_rendered = MandelbrotRenderer.new(zoom, view_x, view_y, max_iterations);
+// TODO: change renderer 
+
+var worker = new Worker();
 
 var width;
 var height;
@@ -33,13 +32,13 @@ const change_zoom = event => {
             mouse_window_y *= height/width;
         }
 
-        mandelbrot_rendered.change_view(2*mouse_window_x, 2*mouse_window_y);
+        worker.postMessage({action:"change_view", arguments:[2*mouse_window_x, 2*mouse_window_y]});
 
         const delta = Math.sign(event.deltaY);
-        const factor = (delta > 0) ? 1/zoom_factor : zoom_factor/1;
-        mandelbrot_rendered.change_zoom(factor);
+        const zoom_in = (delta > 0) ? false : true;
+        worker.postMessage({action:"change_zoom", arguments:[zoom_in]});
 
-        mandelbrot_rendered.change_view(-2*mouse_window_x, -2*mouse_window_y);
+        worker.postMessage({action:"change_view", arguments:[-2*mouse_window_x, -2*mouse_window_y]});
 
         zoom_canvas(event);
     }
@@ -90,9 +89,9 @@ const stop_mouse = event => {
 const move_mouse = event => {
     if (mouse_pressed) {
         if (width > height) {
-            mandelbrot_rendered.change_view(-2*event.movementX/height, -2*event.movementY/height);
+            worker.postMessage({action:"change_view", arguments:[-2*event.movementX/height, -2*event.movementY/height]});
         } else {
-            mandelbrot_rendered.change_view(-2*event.movementX/width, -2*event.movementY/width);
+            worker.postMessage({action:"change_view", arguments:[-2*event.movementX/width, -2*event.movementY/width]});
         }
 
         let last_left = parseFloat(canvas.style.left) / 100;
@@ -108,7 +107,7 @@ const resize_canvas = () => {
     width = canvas.width;
     height = canvas.height;
 
-    canvas_buffer.resize(width, height);
+    worker.postMessage({action:"resize", arguments:[width, height]});
 
     draw_image();
 }
@@ -119,7 +118,8 @@ const transform_canvas = (x, y) => {
 }
 
 const draw_image = () => {
-    mandelbrot_rendered.render(canvas_buffer);
+    var worker = new Worker();
+    worker.postMessage({action:"render"});
     
     canvas.style.top = "0%";
     canvas.style.left = "0%";
@@ -130,15 +130,6 @@ const draw_image = () => {
 }
 
 const draw_canvas = () => {
-    const buffer = canvas_buffer.get_buffer();
-    const buffer_length = canvas_buffer.get_buffer_length();
-
-    const canvas_data = new Uint8ClampedArray(memory.buffer, buffer, buffer_length);
-
-    const image_data = new ImageData(canvas_data, width, height);
-    
-    ctx.clearRect(0, 0, width, height);
-    ctx.putImageData(image_data, 0, 0);
 }
 
 window.addEventListener("resize", resize_canvas);

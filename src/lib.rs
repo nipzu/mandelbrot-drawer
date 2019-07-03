@@ -1,23 +1,26 @@
 mod utils;
-mod webgl;
+//mod webgl;
 mod cpu;
 
 use cpu::CPURenderer;
-use webgl::WebGLRenderer;
+//use webgl::WebGLRenderer;
 use std::os::raw::c_void;
 use wasm_bindgen::prelude::*;
 use palette::{ Hsl, Srgb };
+use num::BigInt;
+
+const BITS_PER_DIGIT: u32 = 16;
+const ZOOM_FACTOR: f64 = 1.125;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+//#[cfg(feature = "wee_alloc")]
+//#[global_allocator]
+//static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen(start)]
 pub fn initialize() {
-    utils::set_panic_hook();
-    webgl::init();
+    //webgl::init();
 }
 
 #[wasm_bindgen]
@@ -58,12 +61,13 @@ trait CalculateEscapeTimes {
 }
 
 struct RenderingState {
-    zoom: f64,
-    view_x: f64,
-    view_y: f64,
+    zoom: BigInt,
+    view_x: BigInt,
+    view_y: BigInt,
     max_iterations: u32,
     screen_width: u32,
     screen_height: u32,
+    digits: u32,
 }
 
 #[wasm_bindgen]
@@ -74,27 +78,32 @@ pub struct MandelbrotRenderer {
 
 #[wasm_bindgen]
 impl MandelbrotRenderer {
-    pub fn new(zoom: f64, view_x: f64, view_y: f64, max_iterations: u32) -> MandelbrotRenderer {
+    pub fn new(zoom: f64, view_x: f64, view_y: f64, max_iterations: u32, digits: u32) -> MandelbrotRenderer {
+    utils::set_panic_hook();
         MandelbrotRenderer {
             state: RenderingState {
-                zoom,
-                view_x,
-                view_y,
+                zoom: float_to_bigint(zoom, digits),
+                view_x: float_to_bigint(view_x, digits),
+                view_y: float_to_bigint(view_y, digits),
                 max_iterations,
                 screen_width: 0,
                 screen_height: 0,
+                digits: if digits == 0 { 1 } else { digits },
             },
-            escape_time_renderer: Box::new(WebGLRenderer::new()),
+            escape_time_renderer: Box::new(CPURenderer::new()),
         }
     }
 
-    pub fn change_zoom(&mut self, factor: f64) {
-        self.state.zoom *= factor;
+    pub fn change_zoom(&mut self, zoom_in: bool) {
+        let factor = float_to_bigint(if zoom_in {1.0/ZOOM_FACTOR} else {ZOOM_FACTOR}, self.state.digits);
+        self.state.zoom = mul_bigint(&self.state.zoom, &factor, self.state.digits);
     }
 
     pub fn change_view(&mut self, delta_x: f64, delta_y: f64) {
-        self.state.view_x += delta_x * 1.0 / self.state.zoom;
-        self.state.view_y += delta_y * 1.0 / self.state.zoom;
+        let delta_x = float_to_bigint(delta_x, self.state.digits);
+        let delta_y = float_to_bigint(delta_y, self.state.digits);
+        self.state.view_x += mul_bigint(&delta_x, &self.state.zoom, self.state.digits);
+        self.state.view_y += mul_bigint(&delta_y, &self.state.zoom, self.state.digits);
     }
 
     pub fn set_max_iterations(&mut self, new_value: u32) {
@@ -149,4 +158,12 @@ impl MandelbrotRenderer {
             }
         }
     }
+}
+
+fn mul_bigint(x: &BigInt, y: &BigInt, digits: u32) -> BigInt {
+    (x * y) >> ((digits-1) * BITS_PER_DIGIT) as usize
+}
+
+fn float_to_bigint(x: f64, digits: u32) -> BigInt {
+    BigInt::from((x * f64::powi(2.0, BITS_PER_DIGIT as i32)) as i128) << ((digits-2) * BITS_PER_DIGIT) as usize
 }
