@@ -1,5 +1,5 @@
 [package]
-name = "mandelbrot"
+name = "mandelbrot-renderer"
 version = "0.1.0"
 authors = ["Sampo Siitonen <sampo.siitonen@gmail.com>"]
 edition = "2018"
@@ -15,6 +15,7 @@ wasm-bindgen = "0.2"
 js-sys = "0.3"
 num = "0.2"
 palette = "0.4"
+lazy_static = "1.3.0"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
